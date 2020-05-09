@@ -2,6 +2,7 @@
 // WWDC 2020 Scholarship
 import SpriteKit
 import GameplayKit
+import AVFoundation
 
 public class EmojiRun : SKScene {
     private var player = SKSpriteNode()
