@@ -1,4 +1,6 @@
-
+// Copyright 2020 Louis Aeilot D
+// WWDC 2020 Scholarship
+// Game Controller
 import SpriteKit
 import UIKit
 public class GameControlButton: SKSpriteNode{

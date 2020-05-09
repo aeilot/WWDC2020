@@ -1,10 +1,19 @@
-//: # Have Fun and ENJOY :)
+//: # WWDC 2020 Student Challenge Project
+//: ## Story
+//: Miss Moji is a nurse in the emoji world. She is fighting fight against the Emoji Virus! There will also be someone who doesn't obay the rule and goes out. You are going to help her let them go home.
+//: * ??? - EASTER EGG
+//: * SpriteKit - Game
+//: * SwiftUI - Text
+//: ## Notice
+//:  * The game generates randomly
+//:  * Use masks to protect yourself but never use too many
+//:  * Go to where those people are and stop them
+//:  * DO NOT TOUCH THE VIRUS
+//: ## Game Rule
+//: * Save people on the streets using limited masks.
+//: * Scroe: Mask left, Time, People.
+//: * Time limit: 3 minutes.
 // Copyright 2020 Louis Aeilot D
-// WWDC 2020 Scholarship
-// Story: She is a nurse in the emoji world. She will fight against the Emoji Virus. There are also someone who doesn't obay the rule and goes out. She will let them go home.
-// ??? ( ??? ) EASTER EGG
-// SpriteKit ( COVID RUN )
-// The game generates randomly
 import PlaygroundSupport
 import SpriteKit
 import SwiftUI
@@ -41,4 +50,3 @@ PlaygroundPage.current.setLiveView(mainView())
 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
     PlaygroundPage.current.liveView = view
 }
-PlaygroundPage.current.wantsFullScreenLiveView  = true
