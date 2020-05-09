@@ -29,7 +29,7 @@ public class EmojiRun : SKScene {
     }
     
     func createPlayer(){
-        player.texture = SKTexture(image: )
+        player.texture = SKTexture()
         player.size = blockSize!
         player.position = CGPoint(x: frame.midX, y: frame.midY)
         self.addChild(player)
