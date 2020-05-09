@@ -1,6 +1,8 @@
 // Copyright 2020 Louis Aeilot D
 // WWDC 2020 Scholarship
 import SpriteKit
+import GameplayKit
+
 public class EmojiRun : SKScene {
     private var player = SKSpriteNode()
     private var blockSize: CGSize?
