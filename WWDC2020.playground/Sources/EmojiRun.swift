@@ -1,8 +1,5 @@
 // Copyright 2020 Louis Aeilot D
 // WWDC 2020 Scholarship
-// The Game file
-// Game Rule: Save people on the streets using limited masks. Scroe: Mask left, Time, People.
-// Save as many as you can in 3 minutes
 import SpriteKit
 public class EmojiRun : SKScene {
     private var player = SKSpriteNode()
