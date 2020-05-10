@@ -1,10 +1,13 @@
 //: # WWDC 2020 Student Challenge Project
+//: **Saying thank you to all medical workers! **
+//: This game simulates how they work in a special way.
 //: ## Story
 //: Miss Moji is a nurse in the emoji world. She is fighting fight against the virus! There will also be someone who doesn't obay the rule and goes out. You are going to help her let them go home.
 //: * ??? - EASTER EGG
 //: * SpriteKit - Game
 //: * SwiftUI - Text
 //: ## Notice
+//:  * Because the protective suit is very heavy, to simulate this, you cannot move continuously.
 //:  * The game generates randomly
 //:  * Use masks to protect yourself but never use too many
 //:  * Go to where those people are and stop them
