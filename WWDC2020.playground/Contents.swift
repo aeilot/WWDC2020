@@ -130,15 +130,15 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
             shuffle()
             return
         }
-        for touch in (touches ) {
+        for touch in (touches) {
             let location = touch.location(in: self)
             if let sp = atPoint(location) as? SKSpriteNode{
                 if sp.name == "up" {
-                    
+                    player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 20))
                 } else if sp.name == "rht" {
-                    
+                    player.physicsBody?.applyImpulse(CGVector(dx: 10, dy: 0))
                 } else if sp.name == "lft" {
-                    
+                    player.physicsBody?.applyImpulse(CGVector(dx: -10, dy: 0))
                 } else if sp.name == "mask" {
                     
                 } else if sp.name == "refresh" {
@@ -339,9 +339,9 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
                     }
                 }
                 if lft{
-                    curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!-blockSize.width, duration: 1))
+                    curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!-(blockSize.width)*0.5, duration: 1))
                 }else{
-                    curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!+blockSize.width, duration: 1))
+                    curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!+(blockSize.width)*0.5, duration: 1))
                 }
             }
             for i in 0...currentPeople{
@@ -354,9 +354,9 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
                     }
                 }
                 if lft{
-                    curPeo?.run(SKAction.moveTo(x: (curPeo?.position.x)!-blockSize.width, duration: 1))
+                    curPeo?.run(SKAction.moveTo(x: (curPeo?.position.x)!-(blockSize.width)*0.5, duration: 1))
                 }else{
-                    curPeo?.run(SKAction.moveTo(x: (curPeo?.position.x)!+blockSize.width, duration: 1))
+                    curPeo?.run(SKAction.moveTo(x: (curPeo?.position.x)!+(blockSize.width)*0.5, duration: 1))
                 }
             }
         }
