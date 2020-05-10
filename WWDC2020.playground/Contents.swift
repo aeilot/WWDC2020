@@ -164,7 +164,7 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
             bodyA = contact.bodyB
             bodyB = contact.bodyA
         }
-        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == enermyCategory) || (bodyA.categoryBitMask  == enermyCategory && bodyB.categoryBitMask == playerCategory){
+        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == enermyCategory){
             if !wearMask{
                 time -= timeMinus*10
                 timeMinus *= 2
@@ -172,8 +172,12 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
                 wearMask.toggle()
             }
         }
-        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == peopleCategory) || (bodyA.categoryBitMask  == peopleCategory && bodyB.categoryBitMask == playerCategory){
-            
+        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == peopleCategory){
+            people+=1
+            bodyB.node?.removeFromParent()
+        } else if (bodyA.categoryBitMask  == peopleCategory && bodyB.categoryBitMask == playerCategory){
+            people+=1
+            bodyA.node?.removeFromParent()
         }
     }
     
