@@ -98,17 +98,39 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
     private var currentHeight: Int = 0
     private var currentBrickTrans: Int = 0
     private let brickCount = 20
+    private var wearMask = false
     private var currentEnvironment: Environment = .normal
     private var gameStatus: GameStatus = .idle
     private let playerCategory: UInt32 = 0x1 << 0
     private let brickCategory: UInt32 = 0x1 << 1
     private let enermyCategory: UInt32 = 0x1 << 2
     private let peopleCategory: UInt32 = 0x1 << 3
+    private let scoreLabel = SKLabelNode()
+    private let timeLabel = SKLabelNode()
+    private var timeMinus = 1
     private var currentYFar = Array(repeating: 0, count: 10)
-    private var score = 0
-    private var time = 180
-    private var mask = 0
-    private var people = 0
+    private var score = 0 {
+        didSet{
+            scoreLabel.text = "\(score)%\n😄 \(people)\n😷 \(mask)"
+        }
+    }
+    private var time = 180 {
+        didSet{
+            timeLabel.text = "🕙 \(time)"
+        }
+    }
+    private var mask = 10 {
+        didSet{
+            score-=10-mask
+            scoreLabel.text = "\(score)   😄 \(people)   😷 \(mask)"
+        }
+    }
+    private var people = 0 {
+        didSet{
+            score+=people
+            scoreLabel.text = "\(score)   😄 \(people)   😷 \(mask)"
+        }
+    }
     private var currentEnermy = 0
     private var currentPeople = 0
     private var currentBlock = 0
@@ -122,10 +144,41 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
         self.physicsWorld.contactDelegate = self
         createScene()
         shuffle()
+        let queue = DispatchQueue.main
+        queue.async {
+            while self.time>0{
+                sleep(1)
+                self.time -= 1
+            }
+            self.gameOver()
+        }
+    }
+    
+    public func didBegin(_ contact: SKPhysicsContact) {
+        let bodyA : SKPhysicsBody
+        let bodyB : SKPhysicsBody
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+            bodyA = contact.bodyA
+            bodyB = contact.bodyB
+        }else{
+            bodyA = contact.bodyB
+            bodyB = contact.bodyA
+        }
+        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == enermyCategory) || (bodyA.categoryBitMask  == enermyCategory && bodyB.categoryBitMask == playerCategory){
+            if !wearMask{
+                time -= timeMinus*10
+                timeMinus *= 2
+            }else{
+                wearMask.toggle()
+            }
+        }
+        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == peopleCategory) || (bodyA.categoryBitMask  == peopleCategory && bodyB.categoryBitMask == playerCategory){
+            
+        }
     }
     
     public override func update(_ currentTime: TimeInterval) {
-        moveScene()
+        //moveScene()
     }
     
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -143,12 +196,10 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
                 } else if sp.name == "lft" {
                     player.physicsBody?.applyImpulse(CGVector(dx: -10, dy: 0))
                 } else if sp.name == "mask" {
-                    
-                } else if sp.name == "refresh" {
-                    isCreate = false
-                    self.removeAllChildren()
-                    createScene()
-                    shuffle()
+                    if !wearMask{
+                        mask -= 1
+                        wearMask.toggle()
+                    }
                 }
             }
         }
@@ -156,6 +207,23 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
     
     // My Func
     func createScene(){
+        // Create Label
+        scoreLabel.zPosition = 20
+        timeLabel.zPosition = 20
+        scoreLabel.fontSize = 35
+        timeLabel.fontSize = 35
+        scoreLabel.color = .white
+        timeLabel.color = .white
+        timeLabel.verticalAlignmentMode = .top
+        timeLabel.horizontalAlignmentMode = .center
+        scoreLabel.verticalAlignmentMode = .top
+        scoreLabel.horizontalAlignmentMode = .center
+        scoreLabel.position = CGPoint(x: self.size.width/2, y: self.size.height-40)
+        timeLabel.position = CGPoint(x: self.size.width/2, y: self.size.height)
+        scoreLabel.text = "\(score)   😄 \(people)   😷 \(mask)"
+        timeLabel.text = "🕙 \(time)"
+        self.addChild(timeLabel)
+        self.addChild(scoreLabel)
         // Create Environment
         self.backgroundColor = #colorLiteral(red: 0.25882352941176473, green: 0.7568627450980392, blue: 0.9686274509803922, alpha: 1.0)
         self.zPosition = -1
@@ -201,14 +269,6 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
         self.addChild(rht)
         self.addChild(up)
         self.addChild(mask)
-        // Setup Label and Refresh
-        let refresh = SKSpriteNode(texture: SKTexture(image: UIImage(systemName: "arrow.clockwise")!), size: controlSize)
-        refresh.name = "refresh"
-        refresh.alpha = 0.6
-        refresh.anchorPoint = CGPoint(x: 0, y: 0)
-        refresh.position = CGPoint(x: (self.size.width)/2, y: self.size.height - controlSize.height - trans)
-        refresh.zPosition = 20
-        self.addChild(refresh)
         // Others
         createBGM()
     }
@@ -328,6 +388,7 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
     
     func gameOver(){
         gameStatus = .over
+        PlaygroundPage.current.setLiveView(gameOverView(score: score))
     }
     
     func moveScene() {
@@ -372,10 +433,30 @@ struct mainView: View{
             Text("Swift Student Challenge")
                 .font(.title)
                 .bold()
-            Text("A Game about virus and medical workers in the emoji world")
+            Text("A Game which simulates Medical Workers Work in a special way")
                 .font(.subheadline)
                 .foregroundColor(Color.gray)
             Text("Say thank you to Medical Workers")
+                .font(.subheadline)
+                .foregroundColor(Color.gray)
+        }
+    }
+}
+
+struct gameOverView: View{
+    var score = 0
+    init(score:Int){
+        self.score = score
+    }
+    var body: some View{
+        VStack{
+            Text("Saying THANK YOU to ALL Medical Workers!")
+                .font(.title)
+                .bold()
+            Text("Score: \(score)")
+                .font(.subheadline)
+                .foregroundColor(Color.gray)
+            Text("Rebuild to replay")
                 .font(.subheadline)
                 .foregroundColor(Color.gray)
         }
