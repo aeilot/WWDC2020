@@ -8,6 +8,7 @@
 //: * SwiftUI - Text
 //: ## Notice
 //:  * Because the protective suit is very heavy, to simulate this, you cannot move continuously.
+//:  * Because their work is all the same all day ==> boring, to simulate this, there's no BGM.
 //:  * The game generates randomly
 //:  * Use masks to protect yourself but never use too many
 //:  * Go to where those people are and stop them
@@ -18,14 +19,11 @@
 //: * Time Limit:  2 minutes and 50 seconds ( Do not ask me why )
 //: * Mask Limit: Random
 //: ## About
-//: Music made with GarageBand
 //: Icons: SF Symbols
 //: Images: Emoji
 // Copyright 2020 Louis Aeilot D
 import PlaygroundSupport
 import SpriteKit
-import GameplayKit
-import AVFoundation
 import SwiftUI
 
 public enum Environment {
@@ -33,19 +31,6 @@ public enum Environment {
     case normal
     case grass
     case wonderland
-}
-
-public enum GameStatus {
-    case idle
-    case running
-    case over
-}
-
-public enum PlayerActivity {
-    case left
-    case right
-    case up
-    case mask
 }
 
 func getColor(by environment: Environment) -> SKColor{
@@ -100,7 +85,6 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
     private let brickCount = 20
     private var wearMask = false
     private var currentEnvironment: Environment = .normal
-    private var gameStatus: GameStatus = .idle
     private let playerCategory: UInt32 = 0x1 << 0
     private let brickCategory: UInt32 = 0x1 << 1
     private let enermyCategory: UInt32 = 0x1 << 2
@@ -108,7 +92,8 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
     private let scoreLabel = SKLabelNode()
     private let timeLabel = SKLabelNode()
     private var timeMinus = 1
-    private var currentYFar = Array(repeating: 0, count: 10)
+    private var currentYFar = Array<Int>()
+    private var sceneCollection = SKNode()
     private var score = 0 {
         didSet{
             scoreLabel.text = "\(score)%\n😄 \(people)\n😷 \(mask)"
@@ -155,30 +140,30 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
     }
     
     public func didBegin(_ contact: SKPhysicsContact) {
-        let bodyA : SKPhysicsBody
-        let bodyB : SKPhysicsBody
-        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
-            bodyA = contact.bodyA
-            bodyB = contact.bodyB
-        }else{
-            bodyA = contact.bodyB
-            bodyB = contact.bodyA
-        }
-        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == enermyCategory){
-            if !wearMask{
-                time -= timeMinus*10
-                timeMinus *= 2
-            }else{
-                wearMask.toggle()
-            }
-        }
-        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == peopleCategory){
-            people+=1
-            bodyB.node?.removeFromParent()
-        } else if (bodyA.categoryBitMask  == peopleCategory && bodyB.categoryBitMask == playerCategory){
-            people+=1
-            bodyA.node?.removeFromParent()
-        }
+//        let bodyA : SKPhysicsBody
+//        let bodyB : SKPhysicsBody
+//        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+//            bodyA = contact.bodyA
+//            bodyB = contact.bodyB
+//        }else{
+//            bodyA = contact.bodyB
+//            bodyB = contact.bodyA
+//        }
+//        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == enermyCategory){
+//            if !wearMask{
+//                time -= timeMinus*10
+//                timeMinus *= 2
+//            }else{
+//                wearMask.toggle()
+//            }
+//        }
+//        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == peopleCategory){
+//            people+=1
+//            bodyB.node?.removeFromParent()
+//        } else if (bodyA.categoryBitMask  == peopleCategory && bodyB.categoryBitMask == playerCategory){
+//            people+=1
+//            bodyA.node?.removeFromParent()
+//        }
     }
     
     public override func update(_ currentTime: TimeInterval) {
@@ -186,10 +171,6 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
     }
     
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if gameStatus == .over {
-            shuffle()
-            return
-        }
         for touch in (touches) {
             let location = touch.location(in: self)
             if let sp = atPoint(location) as? SKSpriteNode{
@@ -273,12 +254,9 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
         self.addChild(rht)
         self.addChild(up)
         self.addChild(mask)
-        // Others
-        createBGM()
     }
     
     func shuffle(){
-        gameStatus = .idle
         let randEnvir = arc4random_uniform(4)
         var currentEnvir: Environment = .normal
         switch(randEnvir){
@@ -307,6 +285,7 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
         if(randVal <= 3){
             randVal += 4
         }
+        currentYFar = Array(repeating: 0, count: Int(randVal))
         for _ in 1...randVal{
             let color = getRandColor()
             let randHeight = arc4random_uniform(UInt32(currentHeight))
@@ -321,7 +300,6 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
             block.physicsBody = SKPhysicsBody(edgeLoopFrom: CGRect(x: posX, y: posY, width: CGFloat(randWidth) * blockSize.width, height: blockSize.height))
             block.physicsBody?.allowsRotation = false
             block.physicsBody?.categoryBitMask = brickCategory
-            block.physicsBody?.isDynamic = false
             block.name = "block\(currentBlock)"
             currentBlock += 1
             self.addChild(block)
@@ -382,16 +360,10 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
         self.addChild(player)
     }
     
-    func createBGM(){
-        
-    }
-    
     func gameStart(){
-        gameStatus = .running
     }
     
     func gameOver(){
-        gameStatus = .over
         PlaygroundPage.current.setLiveView(gameOverView(score: score))
     }
     
@@ -428,6 +400,12 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
                 }
             }
         }
+    }
+    
+    func cleanUp(){
+        currentHeight = 0
+        currentBrickTrans = 0
+        currentYFar.removeAll()
     }
 }
 
