@@ -1,15 +1,19 @@
 //: # WWDC 2020 Student Challenge Project
 //: **Saying thank you to all medical workers! **
 //: This game simulates how they work in a special way.
+//: It is my first Game Project. Apple really let everyone have the chance to code!
+//: # It might be the worst game in the world, but it is real. I specially make it like this to let everyone know HOW GREAT THEY ARE !
 //: ## Story
 //: Miss Moji is a nurse in the emoji world. She is fighting fight against the virus! There will also be someone who doesn't obay the rule and goes out. You are going to help her let them go home.
 //: * ??? - EASTER EGG
 //: * SpriteKit - Game
 //: * SwiftUI - Text
 //: ## Notice
+//:  * Switch another scene needs one second because they need to change their protective suits.
 //:  * Because the protective suit is very heavy, to simulate this, you cannot move continuously.
 //:  * Because their work is all the same all day ==> boring, to simulate this, there's no BGM.
-//:  * The game generates randomly
+//:  * The game may contain impossible cases because this also happens in the real world.
+//:  * The game generates randomly because they never know what difficulties they will face.
 //:  * Use masks to protect yourself but never use too many
 //:  * Go to where those people are and stop them
 //:  * DO NOT TOUCH THE VIRUS
@@ -68,15 +72,6 @@ func getRandColor() -> SKColor{
     return getColor(by: currentEnvir)
 }
 
-public class EdgePoint{
-    public var start: CGPoint
-    public var end: CGPoint
-    public init(start: CGPoint, end: CGPoint){
-        self.start = start
-        self.end = end
-    }
-}
-
 public class EmojiRun : SKScene, SKPhysicsContactDelegate {
     private var player = SKSpriteNode(texture: SKTexture(imageNamed: "nurse.png"))
     private var blockSize: CGSize = CGSize()
@@ -89,17 +84,17 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
     private let brickCategory: UInt32 = 0x1 << 1
     private let enermyCategory: UInt32 = 0x1 << 2
     private let peopleCategory: UInt32 = 0x1 << 3
+    private let backgroundCategory: UInt32 = 0x1 << 4
     private let scoreLabel = SKLabelNode()
     private let timeLabel = SKLabelNode()
     private var timeMinus = 1
     private var currentYFar = Array<Int>()
-    private var sceneCollection = SKNode()
     private var score = 0 {
         didSet{
-            scoreLabel.text = "\(score)%\n😄 \(people)\n😷 \(mask)"
+            scoreLabel.text = "\(score)   😄 \(people)   😷 \(mask)"
         }
     }
-    private var time = 180 {
+    private var time = 175 {
         didSet{
             timeLabel.text = "🕙 \(time)"
         }
@@ -127,47 +122,90 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
         blockSize = CGSize(width: size.width * 0.05, height: size.height * 0.05)
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
         self.physicsWorld.contactDelegate = self
+        self.physicsBody?.categoryBitMask = backgroundCategory
+        self.physicsBody?.contactTestBitMask = playerCategory
         createScene()
         shuffle()
-        let queue = DispatchQueue.main
+        createPlayer()
+        let queue = DispatchQueue.global()
         queue.async {
-            while self.time>0{
+            while self.time>=0{
                 sleep(1)
                 self.time -= 1
             }
             self.gameOver()
         }
+        let queue2 = DispatchQueue.global()
+        queue2.async {
+            while self.isCreate == true && self.time>=0{
+                for i in 0...self.currentEnermy{
+                    var lft = true
+                    let curEner = self.childNode(withName: "vir\(i)")
+                    let tmp = CGPoint(x: (curEner?.position.x)! - self.blockSize.height, y: (curEner?.position.y)! - self.blockSize.width)
+                    if let sp = self.atPoint(tmp) as? SKSpriteNode{
+                        if sp.name!.count >= 6 && sp.name!.prefix(5) == "block"{
+                            lft = false
+                        }
+                    }
+                    if lft{
+                        curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!-(self.blockSize.width)*0.5, duration: 1))
+                    }else{
+                        curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!+(self.blockSize.width)*0.5, duration: 1))
+                    }
+                }
+                for i in 0...self.currentPeople{
+                    var lft = true
+                    let curEner = self.childNode(withName: "peo\(i)")
+                    let tmp = CGPoint(x: (curEner?.position.x)! - self.blockSize.height, y: (curEner?.position.y)! - self.blockSize.width)
+                    if let sp = self.atPoint(tmp) as? SKSpriteNode{
+                        if sp.name!.count >= 6 && sp.name!.prefix(5) == "block"{
+                            lft = false
+                        }
+                    }
+                    if lft{
+                        curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!-(self.blockSize.width)*0.5, duration: 1))
+                    }else{
+                        curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!+(self.blockSize.width)*0.5, duration: 1))
+                    }
+                }
+            }
+        }
     }
     
     public func didBegin(_ contact: SKPhysicsContact) {
-//        let bodyA : SKPhysicsBody
-//        let bodyB : SKPhysicsBody
-//        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
-//            bodyA = contact.bodyA
-//            bodyB = contact.bodyB
-//        }else{
-//            bodyA = contact.bodyB
-//            bodyB = contact.bodyA
-//        }
-//        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == enermyCategory){
-//            if !wearMask{
-//                time -= timeMinus*10
-//                timeMinus *= 2
-//            }else{
-//                wearMask.toggle()
-//            }
-//        }
-//        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == peopleCategory){
-//            people+=1
-//            bodyB.node?.removeFromParent()
-//        } else if (bodyA.categoryBitMask  == peopleCategory && bodyB.categoryBitMask == playerCategory){
-//            people+=1
-//            bodyA.node?.removeFromParent()
-//        }
-    }
-    
-    public override func update(_ currentTime: TimeInterval) {
-        //moveScene()
+        let bodyA : SKPhysicsBody
+        let bodyB : SKPhysicsBody
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+            bodyA = contact.bodyA
+            bodyB = contact.bodyB
+        }else{
+            bodyA = contact.bodyB
+            bodyB = contact.bodyA
+        }
+        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == enermyCategory){
+            if !wearMask{
+                time -= timeMinus*10
+                timeMinus *= 2
+            }else{
+                wearMask.toggle()
+            }
+        }
+        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == peopleCategory){
+            people+=1
+            bodyB.node?.removeFromParent()
+        } else if (bodyA.categoryBitMask  == peopleCategory && bodyB.categoryBitMask == playerCategory){
+            people+=1
+            bodyA.node?.removeFromParent()
+        }
+        if (bodyA.categoryBitMask  == playerCategory && bodyB.categoryBitMask == backgroundCategory){
+            currentBrickTrans = 0
+            cleanUp()
+            shuffle()
+        } else if (bodyA.categoryBitMask  == peopleCategory && bodyB.categoryBitMask == backgroundCategory){
+            currentBrickTrans = 0
+            cleanUp()
+            shuffle()
+        }
     }
     
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -175,11 +213,11 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
             let location = touch.location(in: self)
             if let sp = atPoint(location) as? SKSpriteNode{
                 if sp.name == "up" {
-                    player.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 20))
+                    player.run(SKAction.move(by: CGVector(dx: 0, dy: 40), duration: 0.1))
                 } else if sp.name == "rht" {
-                    player.physicsBody?.applyImpulse(CGVector(dx: 10, dy: 0))
+                    player.run(SKAction.moveTo(x: player.position.x+blockSize.width/2, duration: 0.1))
                 } else if sp.name == "lft" {
-                    player.physicsBody?.applyImpulse(CGVector(dx: -10, dy: 0))
+                    player.run(SKAction.moveTo(x: player.position.x - blockSize.width/2, duration: 0.1))
                 } else if sp.name == "mask" {
                     if !wearMask{
                         mask -= 1
@@ -277,7 +315,6 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
         }
         currentEnvironment = currentEnvir
         createGround()
-        createPlayer()
     }
     
     func createGround(){
@@ -324,6 +361,7 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
                         vir.physicsBody?.categoryBitMask = enermyCategory
                         vir.physicsBody?.affectedByGravity = true
                         vir.name = "vir\(currentEnermy)"
+                        vir.physicsBody?.contactTestBitMask = playerCategory |  peopleCategory | backgroundCategory
                         currentEnermy += 1
                         self.addChild(vir)
                     }
@@ -336,6 +374,7 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
                     peo.physicsBody = SKPhysicsBody(texture: peo.texture!, size: peo.size)
                     peo.physicsBody?.allowsRotation = false
                     peo.physicsBody?.categoryBitMask = peopleCategory
+                    peo.physicsBody?.contactTestBitMask = playerCategory |  enermyCategory | backgroundCategory
                     peo.physicsBody?.affectedByGravity = true
                     peo.name = "peo\(currentPeople)"
                     currentPeople += 1
@@ -352,60 +391,42 @@ public class EmojiRun : SKScene, SKPhysicsContactDelegate {
         player.anchorPoint = CGPoint(x: 0, y: 0)
         player.position = CGPoint(x: blockSize.width * 2, y: blockSize.height)
         player.physicsBody = SKPhysicsBody(texture: player.texture!, size: player.size)
-        player.physicsBody?.allowsRotation = false
         player.physicsBody?.categoryBitMask = playerCategory
-        player.physicsBody?.affectedByGravity = true
-        player.physicsBody?.contactTestBitMask = brickCategory | enermyCategory |  peopleCategory
-        player.physicsBody?.isDynamic = true
+        player.physicsBody?.contactTestBitMask = enermyCategory |  peopleCategory | backgroundCategory
         self.addChild(player)
     }
     
-    func gameStart(){
-    }
-    
     func gameOver(){
-        PlaygroundPage.current.setLiveView(gameOverView(score: score))
-    }
-    
-    func moveScene() {
-        if isCreate{
-            for i in 0...currentEnermy{
-                var lft = true
-                let curEner = self.childNode(withName: "vir\(i)")
-                let tmp = CGPoint(x: (curEner?.position.x)! - blockSize.height, y: (curEner?.position.y)! - blockSize.width)
-                if let sp = atPoint(tmp) as? SKSpriteNode{
-                    if sp.name!.count >= 6 && sp.name!.prefix(5) == "block"{
-                        lft = false
-                    }
-                }
-                if lft{
-                    curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!-(blockSize.width)*0.5, duration: 1))
-                }else{
-                    curEner?.run(SKAction.moveTo(x: (curEner?.position.x)!+(blockSize.width)*0.5, duration: 1))
-                }
-            }
-            for i in 0...currentPeople{
-                var lft = true
-                let curPeo = self.childNode(withName: "peo\(i)")
-                let tmp = CGPoint(x: (curPeo?.position.x)! - blockSize.height, y: (curPeo?.position.y)! - blockSize.width)
-                if let sp = atPoint(tmp) as? SKSpriteNode{
-                    if (sp.name!.count >= 6 && sp.name!.prefix(5) == "block"){
-                        lft = false
-                    }
-                }
-                if lft{
-                    curPeo?.run(SKAction.moveTo(x: (curPeo?.position.x)!-(blockSize.width)*0.5, duration: 1))
-                }else{
-                    curPeo?.run(SKAction.moveTo(x: (curPeo?.position.x)!+(blockSize.width)*0.5, duration: 1))
-                }
-            }
-        }
+        time = 0
+        cleanUp()
+        let label = SKLabelNode()
+        label.zPosition = 20
+        label.fontSize = 35
+        label.color = .white
+        label.verticalAlignmentMode = .top
+        label.horizontalAlignmentMode = .center
+        label.position = CGPoint(x: self.size.width/2, y: self.size.width/2)
+        label.text = "Your Score: \(score)   Say Thank You to Medical workers!"
+        self.addChild(label)
     }
     
     func cleanUp(){
         currentHeight = 0
         currentBrickTrans = 0
         currentYFar.removeAll()
+        for i in 0...currentBlock{
+            let tmp = self.childNode(withName: "block\(i)")
+            tmp?.removeFromParent()
+        }
+        for i in 0...currentPeople{
+            let tmp = self.childNode(withName: "peo\(i)")
+            tmp?.removeFromParent()
+        }
+        for i in 0...currentEnermy{
+            let tmp = self.childNode(withName: "vir\(i)")
+            tmp?.removeFromParent()
+        }
+        isCreate = false
     }
 }
 
@@ -418,27 +439,7 @@ struct mainView: View{
             Text("A Game which simulates Medical Workers Work in a special way")
                 .font(.subheadline)
                 .foregroundColor(Color.gray)
-            Text("Say thank you to Medical Workers")
-                .font(.subheadline)
-                .foregroundColor(Color.gray)
-        }
-    }
-}
-
-struct gameOverView: View{
-    var score = 0
-    init(score:Int){
-        self.score = score
-    }
-    var body: some View{
-        VStack{
-            Text("Saying THANK YOU to ALL Medical Workers!")
-                .font(.title)
-                .bold()
-            Text("Score: \(score)")
-                .font(.subheadline)
-                .foregroundColor(Color.gray)
-            Text("Rebuild to replay")
+            Text("Read the DOC first")
                 .font(.subheadline)
                 .foregroundColor(Color.gray)
         }
